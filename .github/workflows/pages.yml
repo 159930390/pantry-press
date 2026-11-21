@@ -23,8 +23,8 @@ jobs:
       - run: npm run build
         env:
           NEXT_PUBLIC_BASE_PATH: /pantry-press
-          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'https://lunkesheieulwxbveicf.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_-0OMl9aPDH91Ds6aYKv0vw_-EDcgjWO' }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: out
@@ -46,3 +46,23 @@ jobs:
             curl --fail --show-error --location --retry 6 --retry-all-errors --retry-delay 5 "${SITE_URL%/}/$route" -o /tmp/press-page.html
             grep -Fq "Pantry Press" /tmp/press-page.html
           done
+      - name: Check Supabase connectivity
+        env:
+          PROJECT_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || 'https://lunkesheieulwxbveicf.supabase.co' }}
+          PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_-0OMl9aPDH91Ds6aYKv0vw_-EDcgjWO' }}
+        run: |
+          python - <<'PY'
+          import json, os, urllib.request, urllib.error
+          for name, path in [('Auth','/auth/v1/settings'),('Folios','/rest/v1/folios?select=id&limit=0'),('Press','/functions/v1/press')]:
+              request = urllib.request.Request(os.environ['PROJECT_URL'] + path, headers={'apikey': os.environ['PUBLISHABLE_KEY']})
+              try:
+                  with urllib.request.urlopen(request, timeout=15) as response:
+                      print(name, response.status)
+                      if name == 'Auth':
+                          data = json.load(response)
+                          print('Email provider enabled:', data.get('external', {}).get('email'))
+              except urllib.error.HTTPError as error:
+                  print(name, error.code, error.read(300).decode(errors='replace'))
+              except urllib.error.URLError as error:
+                  print(name, str(error.reason))
+          PY
