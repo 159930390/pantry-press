@@ -1,0 +1,1 @@
+import "./globals.css";export const metadata={title:"Pantry Press · 餐桌印务所",description:"把食物照片印成一页可编辑的饮食 Zine。"};export default function Layout({children}:{children:React.ReactNode}){return <html lang="zh-CN"><body>{children}</body></html>}

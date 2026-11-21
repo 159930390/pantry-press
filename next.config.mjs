@@ -1,0 +1,1 @@
+export default { output:"export", trailingSlash:true, images:{unoptimized:true}, experimental:{cpus:1}, basePath:process.env.NEXT_PUBLIC_BASE_PATH || "" };

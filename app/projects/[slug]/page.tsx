@@ -1,0 +1,1 @@
+import {projects} from "../../../lib/projects";import {Studio} from "../../../components/Studio";export function generateStaticParams(){return projects.map(({slug})=>({slug}))} export default async function Project({params}:{params:Promise<{slug:string}>}){return <Studio initial={(await params).slug}/>}
