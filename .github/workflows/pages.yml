@@ -11,11 +11,8 @@ concurrency:
   group: github-pages
   cancel-in-progress: false
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
@@ -31,6 +28,21 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: out
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
       - name: Deploy
         id: deploy
         uses: actions/deploy-pages@v4
+      - name: Verify the published home and recipe pages
+        env:
+          SITE_URL: ${{ steps.deploy.outputs.page_url }}
+        run: |
+          for route in "" "projects/chilli-noodles/" "projects/mango-rice/" "projects/chilli-wontons/"; do
+            curl --fail --show-error --location --retry 6 --retry-all-errors --retry-delay 5 "${SITE_URL%/}/$route" -o /tmp/press-page.html
+            grep -Fq "Pantry Press" /tmp/press-page.html
+          done
