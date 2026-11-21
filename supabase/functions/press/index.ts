@@ -4,7 +4,7 @@ const headers={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":
 function reply(body:unknown,status=200){return new Response(JSON.stringify(body),{headers,status})}
 Deno.serve(async req=>{if(req.method==="OPTIONS")return new Response(null,{headers});if(req.method!=="POST")return reply({error:"POST required"},405);
 try{const sdk=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_ANON_KEY")!);const {data:{user}}=await sdk.auth.getUser((req.headers.get("Authorization")||"").replace(/^Bearer /i,""));if(!user)return reply({error:"请先登录。"},401);
-const enabled=(Deno.env.get("PRESS_ALLOWED_USERS")||"").split(",").map(s=>s.trim());if(!enabled.includes(user.id))return reply({error:"此账户尚未开启模型生成。"},403);
+const enabled=(Deno.env.get("PRESS_ALLOWED_USERS")||"").split(",").map(s=>s.trim());if(!enabled.includes(user.id) && user.app_metadata?.pantry_press_generator !== true)return reply({error:"此账户尚未开启模型生成。"},403);
 const key=Deno.env.get("OPENAI_API_KEY");if(!key)return reply({error:"尚未配置模型密钥。"},503);
 const {stage,photos,plan,index,chart}=await req.json();if(!Array.isArray(photos)||photos.length<1||photos.length>6||photos.some(p=>typeof p!=="string"||p.length>3500000||!/^data:image\/jpeg;base64,/.test(p)))return reply({error:"图片格式或大小无效。"},400);
 const auth={Authorization:"Bearer "+key};
