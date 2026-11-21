@@ -1,5 +1,5 @@
 // Check decoded pixels, since PNG files can also contain fully opaque artwork.
-export async function requireSticker(src:string,label:string):Promise<string>{
+export async function requireSticker(src:string,label:string,ink?:string):Promise<string>{
   if(typeof src!=="string" || !src.startsWith("data:image/png;base64,")) throw Error(label+"没有返回 PNG。");
   const image=new Image();
   image.src=src;
@@ -22,5 +22,12 @@ export async function requireSticker(src:string,label:string):Promise<string>{
     }
   }
   if(clear<164 || solid<16 || border<64) throw Error(label+"未通过透明底检查，请重新生成。");
-  return src;
+  if(!ink) return src;
+  probe.width=image.naturalWidth;
+  probe.height=image.naturalHeight;
+  ctx.drawImage(image,0,0);
+  ctx.globalCompositeOperation="source-in";
+  ctx.fillStyle=ink;
+  ctx.fillRect(0,0,probe.width,probe.height);
+  return probe.toDataURL("image/png");
 }
