@@ -11,8 +11,6 @@ export async function printRecipe(folio:Folio, ingredientEnglish:string[], stepE
   const pen=ctx;
   await document.fonts.ready;
   pen.scale(2,2);
-  pen.fillStyle="#faf7eb";
-  pen.fillRect(0,0,1000,1400);
   function label(value:string,x:number,y:number,font:string,width:number,color="#302b23"){
     pen.font=font;
     pen.fillStyle=color;
@@ -24,7 +22,6 @@ export async function printRecipe(folio:Folio, ingredientEnglish:string[], stepE
     await image.decode();
     const scale=Math.min(w/image.width,h/image.height);
     pen.save();
-    pen.globalCompositeOperation="multiply";
     pen.drawImage(image,x+(w-image.width*scale)/2,y+(h-image.height*scale)/2,image.width*scale,image.height*scale);
     pen.restore();
   }
